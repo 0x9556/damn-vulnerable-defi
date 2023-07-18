@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/utils/Address.sol";
  * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
  */
 abstract contract AuthorizedExecutor is ReentrancyGuard {
+
     using Address for address;
 
     bool public initialized;
@@ -20,6 +21,7 @@ abstract contract AuthorizedExecutor is ReentrancyGuard {
     error AlreadyInitialized();
 
     event Initialized(address who, bytes32[] ids);
+    event Log(bytes4 selector);
 
     /**
      * @notice Allows first caller to set permissions for a set of action identifiers
@@ -53,6 +55,13 @@ abstract contract AuthorizedExecutor is ReentrancyGuard {
         assembly {
             selector := calldataload(calldataOffset)
         }
+
+        // uint256 actionDataOffset = 4 + 32;
+        // assembly {
+        //     selector := calldataload(calldataload(actionDataOffset))
+        // }
+
+        emit Log(selector);
 
         if (!permissions[getActionId(selector, msg.sender, target)]) {
             revert NotAllowed();
