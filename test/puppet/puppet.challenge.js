@@ -129,8 +129,8 @@ describe("[Challenge] Puppet", function () {
       PLAYER_INITIAL_TOKEN_BALANCE,
       ethers.constants.MaxUint256,
       0
-      )
-      
+    )
+
     // const domain = {
     //     name: 'DamnValuableToken',
     //     version: '1',
@@ -158,10 +158,10 @@ describe("[Challenge] Puppet", function () {
     // const sig = await player._signTypedData(domain, types, message)
 
     const attackContractFactory = await ethers.getContractFactory(
-      "Attack",
+      "AttackPuppet",
       player
-      )
-      
+    )
+
     await attackContractFactory.deploy(
       token.address,
       lendingPool.address,
