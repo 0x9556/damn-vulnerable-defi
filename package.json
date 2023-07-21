@@ -13,13 +13,13 @@
         "the-rewarder": "yarn hardhat test test/the-rewarder/the-rewarder.challenge.js",
         "selfie": "yarn hardhat test test/selfie/selfie.challenge.js",
         "compromised": "yarn hardhat test test/compromised/compromised.challenge.js",
-        "puppet": "yarn hardhat test test/puppet(resolved)/puppet.challenge.js",
+        "puppet": "yarn hardhat test test/puppet(solved)/puppet.challenge.js",
         "puppet-v2": "yarn hardhat test test/puppet-v2/puppet-v2.challenge.js",
         "free-rider": "yarn hardhat test test/free-rider/free-rider.challenge.js",
         "backdoor": "yarn hardhat test test/backdoor/backdoor.challenge.js",
         "climber": "yarn hardhat test test/climber/climber.challenge.js",
         "wallet-mining": "yarn hardhat test test/wallet-mining/wallet-mining.challenge.js",
-        "abi-smuggling": "yarn hardhat test test/abi-smuggling(resolved)/abi-smuggling.challenge.js",
+        "abi-smuggling": "yarn hardhat test test/abi-smuggling(solved)/abi-smuggling.challenge.js",
         "puppet-v3": "yarn hardhat test test/puppet-v3/puppet-v3.challenge.js"
     },
     "devDependencies": {
