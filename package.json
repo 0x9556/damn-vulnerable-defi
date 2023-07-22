@@ -14,7 +14,7 @@
         "selfie": "yarn hardhat test test/selfie/selfie.challenge.js",
         "compromised": "yarn hardhat test test/compromised/compromised.challenge.js",
         "puppet": "yarn hardhat test test/puppet(solved)/puppet.challenge.js",
-        "puppet-v2": "yarn hardhat test test/puppet-v2/puppet-v2.challenge.js",
+        "puppet-v2": "yarn hardhat test test/puppet-v2(solved)/puppet-v2.challenge.js",
         "free-rider": "yarn hardhat test test/free-rider/free-rider.challenge.js",
         "backdoor": "yarn hardhat test test/backdoor/backdoor.challenge.js",
         "climber": "yarn hardhat test test/climber/climber.challenge.js",
