@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/utils/Address.sol";
 contract AttackTruster {
     using Address for address;
 
-    uint private constant amount = 1000000 ether;
+    uint private constant amount = 1000000 * 10 ** 18;
 
     constructor(address target, address token) {
         bytes memory data = abi.encodeWithSignature(

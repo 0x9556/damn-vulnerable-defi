@@ -200,7 +200,7 @@ describe('[Challenge] Puppet v2', function () {
                 await player.sendTransaction(tx)
             }
         }
-        await attackWithScript()
+        await attackWithContract()
     })
 
     after(async function () {

