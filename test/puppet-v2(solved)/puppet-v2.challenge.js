@@ -103,6 +103,7 @@ describe('[Challenge] Puppet v2', function () {
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
         async function attackWithContract() {
+            console.log('ATTACK WITH CONTRACT')
             const { signERC2612Permit } = require('eth-permit')
             const attackContractAddress = ethers.utils.getContractAddress({
                 from: player.address,
@@ -144,7 +145,8 @@ describe('[Challenge] Puppet v2', function () {
 
             await player.sendTransaction(tx)
         }
-        async function attack() {
+        async function attackWithScript() {
+            console.log('ATTACK WITH SCRIPT')
             //swap token to eth
             const approveTx = {
                 to: token.address,
@@ -194,9 +196,11 @@ describe('[Challenge] Puppet v2', function () {
 
             const callTxs = [approveTx, swapTx, depositTx, approveWethTx, borrowTx]
 
-            callTxs.forEach(async (tx) => await player.sendTransaction(tx))
+            for (const tx of callTxs) {
+                await player.sendTransaction(tx)
+            }
         }
-        await attackWithContract()
+        await attackWithScript()
     })
 
     after(async function () {
