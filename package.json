@@ -9,7 +9,7 @@
         "unstoppable": "yarn hardhat test test/unstoppable/unstoppable.challenge.js",
         "truster": "yarn hardhat test test/truster(solved)/truster.challenge.js",
         "naive-receiver": "yarn hardhat test test/naive-receiver/naive-receiver.challenge.js",
-        "side-entrance": "yarn hardhat test test/side-entrance/side-entrance.challenge.js",
+        "side-entrance": "yarn hardhat test test/side-entrance(solved)/side-entrance.challenge.js",
         "the-rewarder": "yarn hardhat test test/the-rewarder/the-rewarder.challenge.js",
         "selfie": "yarn hardhat test test/selfie/selfie.challenge.js",
         "compromised": "yarn hardhat test test/compromised/compromised.challenge.js",

